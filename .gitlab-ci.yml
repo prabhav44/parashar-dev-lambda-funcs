@@ -1,0 +1,29 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  REQUEST_QUOTE_ZIP: request-quote.zip
+  REQUEST_QUOTE_ZIP_DIR: $CI_PROJECT_DIR/$REQUEST_QUOTE_ZIP
+  VENV_PACKAGES_DIR: venv/lib/python3.8/site-packages
+  VENV_ACTIVATE_PATH: venv/bin/activate
+
+build-request-quote:
+  stage: build
+  tags:
+    - ubuntu-runner
+  artifacts:
+    paths:
+      - $REQUEST_QUOTE_ZIP_DIR
+    expire_in: 1 day
+  script:
+    - cd request-quote
+    - zip $REQUEST_QUOTE_ZIP_DIR lambda_function.py
+    - zip -g $REQUEST_QUOTE_ZIP_DIR email_template.html
+
+deploy-request-quote:
+  stage: deploy
+  tags:
+    - aws-runner
+  script:
+    - aws lambda update-function-code --function-name request-quote --zip-file fileb://$REQUEST_QUOTE_ZIP
